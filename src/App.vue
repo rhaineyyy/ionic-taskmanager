@@ -1,27 +1,34 @@
 <template>
   <ion-app>
+    <!-- LOADING / SPLASH SCREEN -->
     <div v-if="isLoading" class="loading-screen">
       <div class="glow glow-1"></div>
       <div class="glow glow-2"></div>
 
       <div class="splash-content">
+        <!-- CENTERED ICON BADGE -->
         <div class="logo-badge">
           <ion-icon :icon="checkboxOutline" class="app-logo" />
         </div>
 
+        <!-- TITLE & SUBTITLE -->
         <h1 class="app-title">Daily Task Manager</h1>
         <p class="app-subtitle">Preparing your task records...</p>
 
+        <!-- LARGE PERCENTAGE DISPLAY -->
         <div class="percentage-display">{{ progress }}%</div>
 
+        <!-- PROGRESS BAR -->
         <div class="progress-bar-container">
           <div class="progress-bar-fill" :style="{ width: progress + '%' }"></div>
         </div>
 
+        <!-- BOTTOM STATUS TEXT -->
         <p class="status-text">Loading task information...</p>
       </div>
     </div>
 
+    <!-- MAIN ROUTER OUTLET -->
     <ion-router-outlet v-else />
   </ion-app>
 </template>
@@ -31,29 +38,44 @@ import { ref, onMounted } from 'vue'
 import { IonApp, IonRouterOutlet, IonIcon } from '@ionic/vue'
 import { checkboxOutline } from 'ionicons/icons'
 
+/* =========================
+   STATE
+========================= */
 const isLoading = ref(true)
 const progress = ref(0)
 
+/* =========================
+   LOADING ANIMATION
+========================= */
 onMounted(() => {
-  const duration = 2500
-  const intervalTime = 25
-  const step = 100 / (duration / intervalTime)
+  const DURATION = 6000         // 6 seconds total
+  const TICK = 50               // update every 50ms
+  const TOTAL_TICKS = DURATION / TICK
+  let tick = 0
 
   const timer = setInterval(() => {
-    if (progress.value < 100) {
-      progress.value = Math.min(100, Math.floor(progress.value + step))
-    } else {
+    tick++
+    // Compute percentage based on elapsed ticks
+    progress.value = Math.min(100, Math.round((tick / TOTAL_TICKS) * 100))
+
+    if (tick >= TOTAL_TICKS) {
       clearInterval(timer)
-      setTimeout(() => { isLoading.value = false }, 200)
+      progress.value = 100
+      // Small pause at 100% before hiding
+      setTimeout(() => {
+        isLoading.value = false
+      }, 400)
     }
-  }, intervalTime)
+  }, TICK)
 })
 </script>
 
 <style scoped>
-/* ================= FULLSCREEN ================= */
+/* =========================================================
+   FULLSCREEN SAGE GREEN GRADIENT SPLASH SCREEN
+========================================================= */
 .loading-screen {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   position: fixed;
   inset: 0;
   width: 100vw;
@@ -82,14 +104,14 @@ onMounted(() => {
   width: 300px; height: 300px;
   background: #739882;
   top: -100px; right: -80px;
-  animation: pulse 5s ease-in-out infinite;
+  animation: pulse 8s ease-in-out infinite;
 }
 
 .glow-2 {
   width: 260px; height: 260px;
   background: #3b5e4c;
   bottom: -100px; left: -60px;
-  animation: pulse 6s ease-in-out infinite reverse;
+  animation: pulse 10s ease-in-out infinite reverse;
 }
 
 @keyframes pulse {
@@ -124,7 +146,7 @@ onMounted(() => {
   box-shadow:
     0 12px 32px rgba(0, 0, 0, 0.18),
     inset 0 1px 0 rgba(255, 255, 255, 0.4);
-  animation: floatY 3s ease-in-out infinite;
+  animation: floatY 4s ease-in-out infinite;
 }
 
 @keyframes floatY {
@@ -182,7 +204,7 @@ onMounted(() => {
   height: 100%;
   background: linear-gradient(90deg, #ffffff, #e8f5e9);
   border-radius: 999px;
-  transition: width 0.05s linear;
+  transition: width 0.08s linear;
   box-shadow: 0 0 14px rgba(255, 255, 255, 0.9);
 }
 
