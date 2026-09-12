@@ -26,13 +26,14 @@
         />
       </ion-item>
 
-      <ion-item>
-        <ion-label position="stacked">Due Date</ion-label>
-        <ion-input
-          v-model="task.dueDate"
-          type="date"
-        />
-      </ion-item>
+        <ion-item>
+    <ion-label position="stacked">Due Date</ion-label>
+    <ion-input
+        v-model="task.dueDate"
+        type="date"
+        :min="today"
+    />
+    </ion-item>
 
       <ion-item>
         <ion-label position="stacked">Priority</ion-label>
@@ -98,6 +99,8 @@ import {
 } from '@ionic/vue'
 
 import { addOutline } from 'ionicons/icons'
+
+const today = new Date().toISOString().split('T')[0]
 
 const emit = defineEmits<{
   (e: 'add-task', task: {

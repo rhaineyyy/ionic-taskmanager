@@ -1,183 +1,161 @@
 <template>
   <ion-page>
-
+    <!-- Header -->
     <ion-header>
       <ion-toolbar>
-
-        <ion-title>
-          Daily Task Manager
-        </ion-title>
-
+        <ion-title>Daily Task Manager</ion-title>
       </ion-toolbar>
     </ion-header>
 
     <ion-content :fullscreen="true">
+      <div class="page-container">
 
-      <!-- Welcome -->
-      <div class="welcome-section">
-
-        <div>
-          <p class="small-text">
-            Welcome back!
-          </p>
-
-          <h1>
-            Manage Your Tasks
-          </h1>
-
-          <p class="description">
-            Organize your daily activities and
-            stay on top of your responsibilities.
-          </p>
+        <!-- Page Header -->
+        <div class="page-heading">
+          <h1>My Daily Tasks</h1>
+          <p>Manage your tasks and stay organized.</p>
         </div>
+
+        <!-- Task Summary -->
+        <TaskSummary :tasks="tasks" />
+
+        <!-- Add Task Form -->
+        <TaskForm @add-task="addTask" />
+
+        <!-- Task List -->
+        <TaskList
+          :tasks="tasks"
+          @edit-task="editTask"
+          @delete-task="deleteTask"
+          @toggle-status="toggleStatus"
+        />
 
       </div>
 
-
-      <!-- Task Summary -->
-      <TaskSummary
-        :tasks="tasks"
-      />
-
-
-      <!-- Add Task -->
-      <TaskForm
-        @add-task="addTask"
-      />
-
-
-      <!-- Task List -->
-      <TaskList
-        :tasks="tasks"
-        @edit-task="editTask"
-        @delete-task="deleteTask"
-        @toggle-status="toggleStatus"
-      />
-
-
-      <!-- Edit Modal -->
+      <!-- Edit Task Modal -->
       <ion-modal
         :is-open="showEditModal"
         @didDismiss="closeEditModal"
       >
-
         <ion-header>
           <ion-toolbar>
-
-            <ion-title>
-              Edit Task
-            </ion-title>
+            <ion-title>Edit Task</ion-title>
 
             <ion-buttons slot="end">
               <ion-button @click="closeEditModal">
                 Close
               </ion-button>
             </ion-buttons>
-
           </ion-toolbar>
         </ion-header>
 
-
         <ion-content class="ion-padding">
+          <div class="edit-form">
 
-          <ion-item>
-            <ion-label position="stacked">
-              Task Title
-            </ion-label>
+            <!-- Title -->
+            <ion-item>
+              <ion-input
+                v-model="editingTask.title"
+                label="Task Title"
+                label-placement="stacked"
+                placeholder="Enter task title"
+              />
+            </ion-item>
 
-            <ion-input
-              v-model="editingTask.title"
-              type="text"
-            />
-          </ion-item>
+            <!-- Description -->
+            <ion-item>
+              <ion-textarea
+                v-model="editingTask.description"
+                label="Description"
+                label-placement="stacked"
+                placeholder="Enter task description"
+                :auto-grow="true"
+              />
+            </ion-item>
 
+            <!-- Due Date -->
+            <ion-item>
+              <ion-input
+                v-model="editingTask.dueDate"
+                type="date"
+                label="Due Date"
+                label-placement="stacked"
+                :min="localToday"
+              />
+            </ion-item>
 
-          <ion-item>
-            <ion-label position="stacked">
-              Description
-            </ion-label>
+            <p class="date-note">
+              Past dates cannot be selected.
+            </p>
 
-            <ion-textarea
-              v-model="editingTask.description"
-              :auto-grow="true"
-            />
-          </ion-item>
+            <!-- Priority -->
+            <ion-item>
+              <ion-select
+                v-model="editingTask.priority"
+                label="Priority"
+                label-placement="stacked"
+                interface="popover"
+              >
+                <ion-select-option value="Low">
+                  Low
+                </ion-select-option>
 
+                <ion-select-option value="Medium">
+                  Medium
+                </ion-select-option>
 
-          <ion-item>
-            <ion-label position="stacked">
-              Due Date
-            </ion-label>
+                <ion-select-option value="High">
+                  High
+                </ion-select-option>
+              </ion-select>
+            </ion-item>
 
-            <ion-input
-              v-model="editingTask.dueDate"
-              type="date"
-            />
-          </ion-item>
+            <!-- Status -->
+            <ion-item>
+              <ion-select
+                v-model="editingTask.status"
+                label="Status"
+                label-placement="stacked"
+                interface="popover"
+              >
+                <ion-select-option value="Pending">
+                  Pending
+                </ion-select-option>
 
+                <ion-select-option value="Completed">
+                  Completed
+                </ion-select-option>
+              </ion-select>
+            </ion-item>
 
-          <ion-item>
-            <ion-label position="stacked">
-              Priority
-            </ion-label>
-
-            <ion-select
-              v-model="editingTask.priority"
+            <!-- Save Button -->
+            <ion-button
+              expand="block"
+              class="save-button"
+              @click="saveEdit"
             >
-              <ion-select-option value="Low">
-                Low
-              </ion-select-option>
+              Save Changes
+            </ion-button>
 
-              <ion-select-option value="Medium">
-                Medium
-              </ion-select-option>
-
-              <ion-select-option value="High">
-                High
-              </ion-select-option>
-            </ion-select>
-          </ion-item>
-
-
-          <ion-item>
-            <ion-label position="stacked">
-              Status
-            </ion-label>
-
-            <ion-select
-              v-model="editingTask.status"
+            <!-- Cancel Button -->
+            <ion-button
+              expand="block"
+              fill="outline"
+              @click="closeEditModal"
             >
-              <ion-select-option value="Pending">
-                Pending
-              </ion-select-option>
+              Cancel
+            </ion-button>
 
-              <ion-select-option value="Completed">
-                Completed
-              </ion-select-option>
-            </ion-select>
-          </ion-item>
-
-
-          <ion-button
-            expand="block"
-            class="save-button"
-            @click="saveEdit"
-          >
-            Save Changes
-          </ion-button>
-
+          </div>
         </ion-content>
-
       </ion-modal>
 
     </ion-content>
-
   </ion-page>
 </template>
 
-
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
+import { ref, reactive } from 'vue'
 
 import {
   IonPage,
@@ -189,17 +167,20 @@ import {
   IonButtons,
   IonButton,
   IonItem,
-  IonLabel,
   IonInput,
   IonTextarea,
   IonSelect,
   IonSelectOption
 } from '@ionic/vue'
 
-import TaskForm from '../components/TaskForm.vue'
-import TaskList from '../components/TaskList.vue'
-import TaskSummary from '../components/TaskSummary.vue'
+import TaskForm from '@/components/TaskForm.vue'
+import TaskList from '@/components/TaskList.vue'
+import TaskSummary from '@/components/TaskSummary.vue'
 
+
+/* =========================
+   TASK INTERFACE
+========================= */
 
 interface Task {
   id: number
@@ -211,40 +192,38 @@ interface Task {
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| TASK DATA
-|--------------------------------------------------------------------------
-*/
+/* =========================
+   TASK DATA
+========================= */
 
 const tasks = ref<Task[]>([])
 
 
-/*
-|--------------------------------------------------------------------------
-| ADD TASK
-|--------------------------------------------------------------------------
-*/
+/* =========================
+   TODAY'S DATE
+   Used to disable past dates
+========================= */
 
-const addTask = (newTask: {
-  title: string
-  description: string
-  dueDate: string
-  priority: string
-  status: string
-}) => {
+const date = new Date()
 
+const localToday = `${date.getFullYear()}-${String(
+  date.getMonth() + 1
+).padStart(2, '0')}-${String(
+  date.getDate()
+).padStart(2, '0')}`
+
+
+/* =========================
+   ADD TASK
+========================= */
+
+const addTask = (newTask: Omit<Task, 'id'>) => {
   const task: Task = {
     id: Date.now(),
-
     title: newTask.title,
-
     description: newTask.description,
-
     dueDate: newTask.dueDate,
-
     priority: newTask.priority,
-
     status: newTask.status
   }
 
@@ -252,15 +231,12 @@ const addTask = (newTask: {
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| DELETE TASK
-|--------------------------------------------------------------------------
-*/
+/* =========================
+   DELETE TASK
+========================= */
 
 const deleteTask = (id: number) => {
-
-  const confirmed = confirm(
+  const confirmed = window.confirm(
     'Are you sure you want to delete this task?'
   )
 
@@ -274,14 +250,11 @@ const deleteTask = (id: number) => {
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| TOGGLE TASK STATUS
-|--------------------------------------------------------------------------
-*/
+/* =========================
+   TOGGLE TASK STATUS
+========================= */
 
 const toggleStatus = (id: number) => {
-
   const task = tasks.value.find(
     task => task.id === id
   )
@@ -291,17 +264,15 @@ const toggleStatus = (id: number) => {
   }
 
   task.status =
-    task.status === 'Completed'
-      ? 'Pending'
-      : 'Completed'
+    task.status === 'Pending'
+      ? 'Completed'
+      : 'Pending'
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| EDIT TASK
-|--------------------------------------------------------------------------
-*/
+/* =========================
+   EDIT MODAL
+========================= */
 
 const showEditModal = ref(false)
 
@@ -315,34 +286,41 @@ const editingTask = reactive<Task>({
 })
 
 
+/* =========================
+   OPEN EDIT MODAL
+========================= */
+
 const editTask = (task: Task) => {
-
   editingTask.id = task.id
-
   editingTask.title = task.title
-
   editingTask.description = task.description
-
   editingTask.dueDate = task.dueDate
-
   editingTask.priority = task.priority
-
   editingTask.status = task.status
 
   showEditModal.value = true
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| SAVE EDIT
-|--------------------------------------------------------------------------
-*/
+/* =========================
+   SAVE EDIT
+========================= */
 
 const saveEdit = () => {
 
   if (!editingTask.title.trim()) {
-    alert('Task title is required.')
+    window.alert('Please enter a task title.')
+    return
+  }
+
+  if (!editingTask.dueDate) {
+    window.alert('Please select a due date.')
+    return
+  }
+
+  // Prevent past dates even if someone manually enters one
+  if (editingTask.dueDate < localToday) {
+    window.alert('Please select today or a future date.')
     return
   }
 
@@ -355,24 +333,18 @@ const saveEdit = () => {
   }
 
   task.title = editingTask.title
-
   task.description = editingTask.description
-
   task.dueDate = editingTask.dueDate
-
   task.priority = editingTask.priority
-
   task.status = editingTask.status
 
   showEditModal.value = false
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| CLOSE EDIT MODAL
-|--------------------------------------------------------------------------
-*/
+/* =========================
+   CLOSE EDIT MODAL
+========================= */
 
 const closeEditModal = () => {
   showEditModal.value = false
@@ -381,20 +353,29 @@ const closeEditModal = () => {
 
 
 <style scoped>
+/* =========================
+   PAGE
+========================= */
+
 ion-content {
   --background: #f5f7fa;
 }
 
+.page-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px;
+}
 
-/*
-|--------------------------------------------------------------------------
-| HEADER
-|--------------------------------------------------------------------------
-*/
+
+/* =========================
+   HEADER
+========================= */
 
 ion-toolbar {
   --background: #ffffff;
-  --color: #222;
+  --color: #1f2937;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 ion-title {
@@ -402,51 +383,80 @@ ion-title {
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| WELCOME
-|--------------------------------------------------------------------------
-*/
+/* =========================
+   PAGE HEADING
+========================= */
 
-.welcome-section {
-  padding: 25px 20px 10px;
+.page-heading {
+  margin-bottom: 20px;
 }
 
-.small-text {
+.page-heading h1 {
   margin: 0;
-  font-size: 14px;
-  color: #777;
+  font-size: 28px;
+  font-weight: 700;
+  color: #1f2937;
 }
 
-.welcome-section h1 {
-  margin: 5px 0;
-  font-size: 30px;
-  font-weight: 800;
-  color: #222;
-}
-
-.description {
-  margin: 8px 0 0;
-  color: #777;
-  line-height: 1.5;
+.page-heading p {
+  margin-top: 6px;
+  margin-bottom: 0;
+  color: #6b7280;
+  font-size: 15px;
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| EDIT FORM
-|--------------------------------------------------------------------------
-*/
+/* =========================
+   EDIT FORM
+========================= */
 
-ion-modal ion-item {
+.edit-form {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.edit-form ion-item {
   margin-bottom: 12px;
-  --padding-start: 0;
-  --inner-padding-end: 0;
+  --border-radius: 10px;
+  --background: #ffffff;
 }
+
+
+/* =========================
+   DATE NOTE
+========================= */
+
+.date-note {
+  margin: -4px 0 15px 16px;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+
+/* =========================
+   BUTTONS
+========================= */
 
 .save-button {
   margin-top: 25px;
-  --border-radius: 12px;
+  margin-bottom: 12px;
+  --border-radius: 10px;
   height: 48px;
+  font-weight: 600;
+}
+
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 600px) {
+  .page-container {
+    padding: 15px;
+  }
+
+  .page-heading h1 {
+    font-size: 24px;
+  }
 }
 </style>
