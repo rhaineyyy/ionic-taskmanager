@@ -100,7 +100,7 @@ jobs:
       # ----------------------------------------------------------
       # 11. Rename the generated APK
       # ----------------------------------------------------------
-      - name: ionic-calculator.apk
+      - name: ionic-task-manager.apk
         run: |
           cp android/app/build/outputs/apk/debug/app-debug.apk IonicCalculator.apk
 
@@ -112,6 +112,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: IonicTaskManager-APK
-          path: IonicTaskManager.apk
+          path: IonicCalculator.apk
           if-no-files-found: error
           retention-days: 30
